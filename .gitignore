@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.pyc
+.idea/
+.settings/
+.vscode/
+.eggs/
+.pytest_cache/
+local_config.py
+build/
+dist/
+venv/
