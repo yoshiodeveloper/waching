@@ -1,6 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-import json
 import pytz
 import pymongo
 import tweepy
