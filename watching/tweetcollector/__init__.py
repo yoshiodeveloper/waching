@@ -1,4 +1,5 @@
-import pytz
+# -*- encoding: utf-8 -*-
+
 import pymongo
 import tweepy
 
@@ -9,6 +10,10 @@ from time import sleep
 from watching.config import (MONGO_DB, MONGO_URI, TWITTER_ACCESS_TOKEN,
                              TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET,
                              TWITTER_TOKEN_SECRET, TWITTER_SEARCH_TERM)
+
+from watching.db import get_db
+from watching.utils import dt_to_naive
+from watching.utils import print_
 
 
 class TweetCollector(object):
@@ -22,16 +27,6 @@ class TweetCollector(object):
         """
         self.run_forever = run_forever
         self.interval = interval
-
-    def print_(self, msg):
-        """ Exibe um mensagem no terminal com a data atual. """
-        dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print('[%s] %s' % (dt, msg))
-
-    def get_db(self):
-        client = pymongo.MongoClient(MONGO_URI)
-        db = client[MONGO_DB]
-        return db
 
     def get_api(self):
         """ Retorna uma instância da API do Twitter. """
@@ -50,9 +45,8 @@ class TweetCollector(object):
 
     def search_and_store(self):
         """ Busca os tweets e armazena no DB. """
-        db = self.get_db()
+        db = get_db()
         api = self.get_api()
-        tz = pytz.UTC
         q = TWITTER_SEARCH_TERM  # Termo de busca
         # TODO: Usar o since_id para especificar o último tweet coletado e evitar retonar muito tweets.
 
@@ -66,8 +60,8 @@ class TweetCollector(object):
             screen_name = user.get('screen_name')
             published_at = tweet['created_at']
             published_at = datetime.strptime(published_at, '%a %b %d %H:%M:%S +0000 %Y')
-            published_at = tz.localize(published_at)
-            created_at = tz.localize(datetime.utcnow())
+            published_at = dt_to_naive(published_at)
+            created_at = dt_to_naive(datetime.utcnow())
             text = tweet.get('full_text') or tweet.get('text') or ''
             resume = '%s #%s @%s: %s' % (published_at, id_, screen_name, text)
             post = {
@@ -86,6 +80,6 @@ class TweetCollector(object):
                 break
             else:
                 inserted += 1
-                self.print_('[+] %s' % resume)
+                print_('[+] %s' % resume)
 
-        self.print_('Tweets novos: %d' % inserted)
+        print_('Tweets novos: %d' % inserted)
