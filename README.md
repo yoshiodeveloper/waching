@@ -1,7 +1,7 @@
 # watching
 
 Trabalho sobre Hadoop feito em Python.
-O sistema monitora tweets com o termo "assistindo" e armazena em um base MongoDB.
+O sistema monitora tweets com o termo "assistindo" e armazena em uma base MongoDB.
 
 Os tweets coletados são posteriormente processados pelo Hadoop para identificar os filmes que as pessoas estão assistindo.
 

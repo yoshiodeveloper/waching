@@ -2,6 +2,8 @@
 
 import os
 
+# Diretório base do projeto.
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Configure com as informações do App do Twitter.
 TWITTER_CONSUMER_KEY = ''
@@ -18,6 +20,7 @@ MONGO_URI = os.getenv('MONGO_URI') or 'mongodb://127.0.0.1:27017/%s' % MONGO_DB
 
 # Local onde serão gerados os arquivos extraídos do MongoDB.
 ETL_DIR = '/tmp/watching/etl/'
+
 
 try:
     # Sobrescreve as configurações pelo valore em "watching.instance.config".
