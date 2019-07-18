@@ -1,14 +1,13 @@
-Baixe a VM de quickstart na versão 5.13 da Cloudera. Escolha a opção **Docker Image**.
+# Instalação e execução do Cloudera Quickstart 5.13
+
+Baixe a VM de quickstart na versão 5.13 da Cloudera. Escolha a opção **Docker Image**. Veja o documento de instalação do Docker.
 
 - https://www.cloudera.com/downloads/quickstart_vms/5-13.html
 
-Descompacte o a imagem. 
-
-- *Nota: A um problema no arquivo da Cloudera no qual ele foi transformado em ".tar" duas vezes. O procedimento reverso também deve ser feito duas vezes.*
+Descompacte o a imagem.
 
 ```shell
-$ gunzip cloudera-quickstart-vm-5.13.0-0-beta-docker.tar.gz
-$ tar -xvf cloudera-quickstart-vm-5.13.0-0-beta-docker.tar   # este é um tar de um tar
+$ tar -zxvf cloudera-quickstart-vm-5.13.0-0-beta-docker.tar.gz
 ```
 
 Importe a imagem.
@@ -31,4 +30,4 @@ $ docker container logs -f  cloudera
 
 Acesse http://localhost:7180 e veja se a tela de "welcome" irá aparecer.
 
-Após alguns instantes o Hue estará acessível em http://localhost:8888.
+Após alguns instantes o Hue estará acessível em http://localhost:8888. Utilize a login "cloudera" e senha "cloudera".
