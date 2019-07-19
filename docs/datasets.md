@@ -7,7 +7,7 @@ $ docker container exec -it cloudera hdfs dfs -mkdir -p /user/watching/movies
 $ docker container exec -it cloudera hdfs dfs -mkdir -p /user/watching/movies-titles
 ```
 
-Se o container não foi iniciado com um diretório montado (/tmp/docker) do host onde estão os datasets, pode-se copiar os datasets via Hue File Browser (http://localhost:8888/hue/home/) ou copiar para dentro do container.
+Se o container não foi iniciado com um diretório montado (/tmp/cloudera) do host onde estão os datasets, pode-se importar os datasets no HDFS via Hue File Browser (http://localhost:8888/hue/home/) ou copiar para dentro do container e depois copiar para o HDFS.
 
 
 ## Via diretório montado
@@ -32,6 +32,8 @@ Acesse http://localhost:8888/hue/home/ e faça a inclusão dos arquivos no HDFS 
 
 ## Via copiar local para dentro do container
 
+> Esta forma não é recomendada, pois se os datasets forem grandes o container irá "inchar" em tamanho.
+
 Copie os arquivos locais para dentro do container:
 
 ```shell
@@ -45,6 +47,3 @@ Insere do HDFS:
 $ docker container exec -it cloudera hdfs dfs -copyFromLocal /tmp/movies-titles.json /user/watching/movies-titles/
 $ docker container exec -it cloudera hdfs dfs -copyFromLocal /tmp/movies-processed.json /user/watching/movies/
 ```
-
-> Esta forma não é recomendada, pois se os datasets forem grandes o container irá "inchar" em tamanho.
-
