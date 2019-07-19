@@ -4,11 +4,11 @@
 Script para extrair os registros do MongoDB e importá-los no HDFS.
 """
 
-from watching.etl import ETL
+from watching.etl.posts import PostsETL
 
 
 def main():
-    with ETL() as etl:
+    with PostsETL() as etl:
         etl.start()
 
 

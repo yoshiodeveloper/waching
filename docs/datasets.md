@@ -4,7 +4,6 @@ Crie os diretórios dentro do HDFS onde ficação os datasets analisados.
 
 ```shell
 $ docker container exec -it cloudera sudo -u hdfs hdfs dfs -mkdir -p /user/watching/movies
-$ docker container exec -it cloudera sudo -u hdfs hdfs dfs -mkdir -p /user/watching/movies-titles
 $ docker container exec -it cloudera sudo -u hdfs hdfs dfs -mkdir -p /user/watching/posts
 ```
 
@@ -24,7 +23,6 @@ $ sudo cp watching/datasets/posts.json /tmp/cloudera/posts.json
 Insere no HDFS:
 
 ```shell
-$ docker container exec -it cloudera sudo -u hdfs hdfs dfs -copyFromLocal /tmp/host/movies-titles.json /user/watching/movies-titles/
 $ docker container exec -it cloudera sudo -u hdfs hdfs dfs -copyFromLocal /tmp/host/movies-processed.json /user/watching/movies/
 $ docker container exec -it cloudera sudo -u hdfs hdfs dfs -copyFromLocal /tmp/host/posts.json /user/watching/posts/
 ```

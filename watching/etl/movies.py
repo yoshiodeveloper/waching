@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
 
 import csv
-import os
-import re
 import json
+import re
+import os
 
 from datetime import datetime
 from unidecode import unidecode
 
-from watching.config import PROJECT_DIR
+from watching.config import ETL_DIR, PROJECT_DIR
 from watching.utils import print_
 
 
@@ -26,6 +26,13 @@ class MoviesETL(object):
         }
         self.stopwords = ('a', 'as', 'às', 'ás', 'o', 'os', 'of', 'da', 'das', 'de', 'des', 'do', 'dos', 'du', 'la', 'lá', 'las', 'lo', 'los', 'que', 'the', 'that', 'this', 'um', 'uma', 'uns', 'umas', 'crônicas', 'cronicas', 'chronicles', 'saga')
         self.stopwords = {' %s ' % c for c in self.stopwords}
+
+    def __enter__(self):
+        print_('Iniciando...')
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        print_('Finalizado.')
 
     def normalize_title(self, title):
         """ Trata um título de um filme.
@@ -162,15 +169,14 @@ class MoviesETL(object):
         return movies_dataset
 
     def start(self):
-        print_('Iniciando processamento de filmes...')
         movies = self.load_datasets()
 
-        filename = os.path.join(self.dataset_dir, 'movies-processed.json')
+        filename = 'movies.json'
         with open(filename, 'w') as f:
             for id_, movie in movies.items():
                 movie = json.dumps(movie)
                 f.write('%s\n' % movie)
-
+        print_('Importante 1: Foi gerado o arquivo "%s". Ele deve ser enviado ao HDFS e contém os dados dos filmes.' % (filename))
         # Gera um arquivo com os nomes os títulos ordenados pelo tamanho do título e pontuação.
         movie_titles = []
         for id_, movie in movies.items():
@@ -178,15 +184,11 @@ class MoviesETL(object):
                 movie_titles.append((len(title), score, title, id_))
         movie_titles.sort(reverse=True)
 
-        filename = os.path.join(self.dataset_dir, 'movies-titles.json')
+        filename = 'moviestitles.py'
         with open(filename, 'w') as f:
+            f.write('MOVIES_TITLES = (\n')
             for len_title, score, title, id_ in movie_titles:
                 rec = {'score': score, 'title': title, 'title_length': len(title), 'movie_id': id_}
-                f.write('%s\n' % json.dumps(rec))
-
-        print_('Finalizado')
-
-
-if __name__ == '__main__':
-    m = MoviesETL()
-    m.start()
+                f.write('    %s,\n' % repr(rec))
+            f.write(')\n')
+        print_('Importante 2: Foi gerado o arquivo "%s". O conteúdo dele deve ser utilizado no script de MapReduce.' % (filename))
