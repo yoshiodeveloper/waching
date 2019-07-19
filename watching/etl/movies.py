@@ -181,7 +181,7 @@ class MoviesETL(object):
         filename = os.path.join(self.dataset_dir, 'movies-titles.json')
         with open(filename, 'w') as f:
             for len_title, score, title, id_ in movie_titles:
-                rec = {'score': score, 'title': title, 'movie_id': id_}
+                rec = {'score': score, 'title': title, 'title_length': len(title), 'movie_id': id_}
                 f.write('%s\n' % json.dumps(rec))
 
         print_('Finalizado')
@@ -190,4 +190,3 @@ class MoviesETL(object):
 if __name__ == '__main__':
     m = MoviesETL()
     m.start()
-    

@@ -24,6 +24,4 @@ Verifique se os serviços estão subindo corretamente através dos logs.
 $ docker container logs -f cloudera
 ```
 
-Acesse http://localhost:7180 e veja se a tela de "welcome" irá aparecer.
-
 Após alguns instantes o Hue estará acessível em http://localhost:8888. Utilize a login "cloudera" e senha "cloudera".
