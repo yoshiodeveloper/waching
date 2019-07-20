@@ -1,4 +1,12 @@
-Instale o Python 3 dentro do container da Cloudera.
+# MapReduce
+
+Entre no container da Cloudera.
+
+```shell
+$ docker container exec -it cloudera bash
+```
+
+Instale o Python 3.
 
 ```shell
 # yum install -y python34
@@ -7,5 +15,5 @@ Instale o Python 3 dentro do container da Cloudera.
 Execute o job de MapReduce.
 
 ```shell
-hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar -files "mapreduce" -mapper "python3 mapreduce/mapper_movies.py" -reducer "python3 mapreduce/reducer_movies.py" -input "/user/watching/posts/" -output "/user/watching/posts_out/"
+$ sudo -u hdfs hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar -files "mapreduce" -mapper "python3 mapreduce/mapper_movies.py" -reducer "python3 mapreduce/reducer_movies.py" -input "/user/watching/posts/" -output "/user/watching/posts_out/"
 ```

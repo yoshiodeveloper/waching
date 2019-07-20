@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 """
-Script para extrair os registros do MongoDB e importá-los no HDFS.
+Script para extrair os registros do MongoDB.
 """
 
 from watching.etl.posts import PostsETL
