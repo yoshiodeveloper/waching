@@ -34,13 +34,13 @@ Ative o ambiente criado.
 $ source $WATCHING_HOME/venv/bin/activate
 ```
 
-Instale as libs do Python no ambiente utilizando o arquivo "requirements.txt".
+Instale as libs do Python no ambiente utilizando o arquivo "requirements.txt" disponibilizado.
 
 ```bash
 $ pip install -r $WATCHING_HOME/requirements.txt
 ```
 
-Para executar os script inclua o diretório do Watching dentro do PYTHONPATH.
+Para executar os scripts do projeto, inclua primeiro o diretório do Watching dentro da variável PYTHONPATH.
 
 ```bash
 $ export PYTHONPATH=$PYTHONPATH:$WATCHING_HOME
