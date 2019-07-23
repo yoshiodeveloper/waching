@@ -5,11 +5,15 @@ import json
 
 from datetime import datetime
 
+from watching.config import PROJECT_DIR
 from watching.db import get_db
 from watching.utils import print_
 
 
 class PostsETL(object):
+
+    def __init__(self):
+        self.dataset_dir = os.path.join(PROJECT_DIR, 'datasets')
 
     def __enter__(self):
         print_('Iniciando...')
@@ -21,10 +25,11 @@ class PostsETL(object):
     def start(self):
         db = get_db()
         print_('Consultando posts no MongoDB...')
-        filename = 'posts.json'
-        start_at = datetime(2019, 7, 18, 0, 0, 0, 0)
-        end_at = datetime(2019, 7, 18, 23, 59, 59, 999999)
-        find_filter = {'published_at': {'$gte': start_at, '$lte': end_at}}
+        filename = os.path.join(self.dataset_dir, 'posts.json')
+        #start_at = datetime(2019, 7, 8, 0, 0, 0, 0)
+        # end_at = datetime(2019, 7, 14, 23, 59, 59, 999999)
+        #find_filter = {'published_at': {'$gte': start_at, '$lte': end_at}}
+        find_filter = {}
         posts = db.posts.find(find_filter, {'published_at': 1, 'tweet.full_text': 1})
         total = posts.count()
         i = 0
@@ -41,4 +46,4 @@ class PostsETL(object):
                 rec = {'published_at': published_at, 'full_text': full_text}
                 f.write('%s\n' % json.dumps(rec))
 
-        print_('Importante: Foi gerado o arquivo "%s". Ele deve ser enviado ao HDFS e contém os dados dos posts coletados do Twitter.' % (filename))
+        print_('Importante: Foi gerado o arquivo "%s". Ele deve ser enviado ao HDFS em "hdfs:///user/cloudera/watching/posts".' % (filename))

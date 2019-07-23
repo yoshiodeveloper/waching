@@ -8,6 +8,9 @@ from watching.etl.movies import MoviesETL
 
 
 def main():
+    if input('Esta operação irá sobrescrever "movies.json" e "moviestitle.py" atuais. Deseja continuar? (s/n) ') != 's':
+        print('operação cancelada')
+        exit(1)
     with MoviesETL() as etl:
         etl.start()
 

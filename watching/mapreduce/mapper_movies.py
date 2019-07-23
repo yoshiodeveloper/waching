@@ -18,14 +18,14 @@ def main(args):
         for movie in MOVIES_TITLES:
             full_text = line['full_text']
             if full_text.startswith('RT @'):
-                # Não precisa processar RT
+                # Não precisa processar RTs.
                 continue
             full_text = ' %s ' % full_text.lower()
             if movie['title'] in full_text:
-                dt = line['published_at'][:13]  # retorna 'YYYY-MM-DD HH'
-                dt = '%s:00:00' % (dt)
-                key = '%s|%s' % (dt, movie['movie_id'])
-                print('%s\t%s' % (key, 1))
+                #key = '%s|%s' % (line['published_at'], movie['movie_id'])
+                k = movie['movie_id']
+                v = line['published_at']
+                print('%s\t%s' % (k, v))
                 break
 
 

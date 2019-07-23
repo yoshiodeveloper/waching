@@ -8,9 +8,8 @@ import os
 from datetime import datetime
 from unidecode import unidecode
 
-from watching.config import ETL_DIR, PROJECT_DIR
+from watching.config import PROJECT_DIR
 from watching.utils import print_
-
 
 class MoviesETL(object):
 
@@ -19,13 +18,25 @@ class MoviesETL(object):
         # Somente o caracter '-' não é removido. Será utilizado para identificar nomes como "spider-man".
         self.pat_invalid_chars = re.compile(r'[|\\/@¨&*()–_–=–+§¬¹²³£¢\[\]\{\}<>!?¡¿,.;:§~¡¿ß´’"“”#$\'«»、。「」※…\n\t\r]+', re.S | re.M)
         self.dataset_dir = os.path.join(PROJECT_DIR, 'datasets')
+        self.mapreduce_dir = os.path.join(PROJECT_DIR, 'mapreduce')
         self.datasets = {
-            'movielens_credits': {'filename': os.path.join(self.dataset_dir, 'movielens-credits.csv'), 'data': None},
-            'movielens_metadata': {'filename': os.path.join(self.dataset_dir, 'movielens-metadata.csv'), 'data': None},
+            'imdb_movies': {'filename': os.path.join(self.dataset_dir, 'imdb-movies.tsv'), 'data': None},
             'ancine': {'filename': os.path.join(self.dataset_dir, 'ancine-movies.csv'), 'data': None},
         }
         self.stopwords = ('a', 'as', 'às', 'ás', 'o', 'os', 'of', 'da', 'das', 'de', 'des', 'do', 'dos', 'du', 'la', 'lá', 'las', 'lo', 'los', 'que', 'the', 'that', 'this', 'um', 'uma', 'uns', 'umas', 'crônicas', 'cronicas', 'chronicles', 'saga')
         self.stopwords = {' %s ' % c for c in self.stopwords}
+        self.record_template = {
+            'id': None,
+            'original_title': None,
+            'ptbr_title': None,
+            'scored_titles': [],
+            'release_date': None,
+            'genres': [],
+            'cast': [],
+            'rating': None,
+            'votes': None,
+            'is_duplicated': False,
+        }
 
     def __enter__(self):
         print_('Iniciando...')
@@ -89,106 +100,143 @@ class MoviesETL(object):
                     scored_titles.append((perc, t))
         return scored_titles
 
-    def load_datasets(self):
-        record_template = {
-            'id': None,
-            'original_title': None,
-            'ptbr_title': None,
-            'scored_titles': [],
-            'release_date': None,
-            'cast': [],
-            'score_avg': None,
-        }
-        movies_dataset = {}
-
-        print_('Processando dataset Ancine...')
-        dataset = self.datasets['ancine']
-        dataset['data'] = {}
-        with open(dataset['filename'], 'r') as f:
+    def get_ancine_dataset(self):
+        """ Retorna o dataset da Ancine. Um dicionário é retornado onde a chave o título do filme (original) e o valor
+        é uma lista de filmes ordenado pelo ano de forma descendente.
+        Isto é necessário pois caso haja filmes com nomes iguais será dado preferência para o filme lançado mais
+        recentemente.
+        """
+        filename = os.path.join(self.dataset_dir, 'ancine-movies.csv')
+        dataset = {}
+        with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter=';', quotechar='"')
             reader.__next__()  # Ignora a primeira linha pois é o cabeçalho.
             for line in reader:
-                id_, original_title, ptbr_title, release_date = line[0], line[1], line[2], line[5]
-                release_date = datetime.strptime(release_date, '%Y-%m-%d')
-                rec = record_template.copy()
+                id_, original_title, ptbr_title, year_production, director, release_date = line[0], line[1], line[2], line[3], line[4], line[5]
+                rec = self.record_template.copy()
                 rec['original_title'] = self.normalize_title(original_title)
                 rec['ptbr_title'] = self.normalize_title(ptbr_title)
-                rec['release_date'] = release_date
-                dataset['data'][rec['original_title']] = rec
+                if rec['ptbr_title'] == 'a ser definido':
+                    continue
+                rec['release_date'] = datetime.strptime(release_date, '%Y-%m-%d')
+                movie_list = dataset.setdefault(rec['original_title'], [])
+                movie_list.append(rec)
+        for movie_list in dataset.values():
+            movie_list.sort(key=lambda x: x['release_date'], reverse=True)
+            if len(movie_list) > 1:
+                for movie in movie_list:
+                    movie['is_duplicated'] = True
+        return dataset
 
-        print_('Processando dataset MovieLens-Metadata...')
-        dataset = self.datasets['movielens_metadata']
-        dataset['data'] = {}
-        with open(dataset['filename'], 'r') as f:
-            reader = csv.reader(f, delimiter=',', quotechar='"')
-            reader.__next__()  # Ignora a primeira linha pois é o cabeçalho.
+    def get_imdb_dataset(self):
+        """ Retorna o dataset do IMDB. Um dicionário é retornado onde a chave o título do filme (original) e o valor
+        é uma lista de filmes ordenado pelo ano de forma descendente.
+        Isto é necessário pois caso haja filmes com nomes iguais será dado preferência para o filme lançado mais
+        recentemente.
+        """
+        filename = os.path.join(self.dataset_dir, 'imdb-movies.tsv')
+        dataset = {}
+        with open(filename, 'r') as f:
+            reader = csv.reader(f, delimiter='\t', quotechar='"')
             for line in reader:
-                rec = record_template.copy()
-                genres, id_, original_title, release_date, score_avg, votes = line[3], line[5], line[8], line[14], line[22], line[23]
-                rec['original_title'] = self.normalize_title(original_title)
-                score_avg = float(score_avg)
+                rec = self.record_template.copy()
+                id_, title, start_year, end_year, genres, cast, rating, votes = line[0], line[1], line[2], line[3], \
+                                                                                line[4], line[5], line[6], line[7]
+                rec['original_title'] = self.normalize_title(title)
+                try:
+                    start_year = int(start_year)
+                except:
+                    start_year = None
+                try:
+                    end_year = int(end_year)
+                except:
+                    end_year = None
+                try:
+                    rating = float(rating)
+                except:
+                    rating = None
                 votes = int(votes)
                 if votes < 10:
                     # Ignora filmes com poucos votos.
-                    # print_('Filme ignorado - poucos votos: %s' % (rec['original_title']))
                     continue
-
-                genres = eval(genres)
-                genres = [g['name'] for g in genres]
-                if not release_date:
-                    # print_('Filme ignorado - sem data: %s' % (rec['original_title']))
-                    continue
-
+                genres = [g.strip() for g in genres.split(',') if g.strip()]
+                cast = [c.strip() for c in cast.split(',') if c.strip()]
                 rec['id'] = id_
                 rec['genres'] = genres
-                rec['score_avg'] = score_avg
-                rec['release_date'] = release_date
-                ancine = self.datasets['ancine']['data'].get(rec['original_title'])
-                if (not ancine) or (not ancine['ptbr_title']):
-                    # Serão analisados apenas títulos com nome em português.
+                rec['cast'] = cast
+                rec['rating'] = rating
+                rec['votes'] = votes
+                rec['release_date'] = datetime(end_year or start_year, 1, 1)
+                if not all((rec['genres'], rec['cast'], rec['rating'], rec['votes'], rec['release_date'])):
                     continue
-                rec['ptbr_title'] = ancine['ptbr_title']
-                rec['scored_titles'] = self.get_scored_titles([rec['ptbr_title'], rec['original_title']])
-                movies_dataset[id_] = rec
-
-        print_('Processando dataset MovieLens-Credits...')
-        dataset = self.datasets['movielens_credits']
-        dataset['data'] = {}
-        with open(dataset['filename'], 'r') as f:
-            reader = csv.reader(f, delimiter=',', quotechar='"')
-            reader.__next__()  # Ignora a primeira linha pois é o cabeçalho.
-            for line in reader:
-                rec = record_template.copy()
-                cast, crew, id_ = line[0], line[1], line[2]
-                cast = eval(cast)
-                cast = [c['name'] for c in cast]
-                dataset['data'][id_] = rec
-                movie = movies_dataset.get(id_)
-                if movie:
-                    movie['cast'] = cast
-        return movies_dataset
+                movie_list = dataset.setdefault(rec['original_title'], [])
+                movie_list.append(rec)
+        for movie_list in dataset.values():
+            movie_list.sort(key=lambda x: x['release_date'], reverse=True)
+        return dataset
 
     def start(self):
-        movies = self.load_datasets()
+        print_('Caregando dataset Ancine...')
+        ancine_dataset = self.get_ancine_dataset()
 
-        filename = 'movies.json'
-        with open(filename, 'w') as f:
-            for id_, movie in movies.items():
+        print_('Caregando dataset IMDB...')
+        imdb_dataset = self.get_imdb_dataset()
+
+        print_('Mesclando datasets...')
+        movies = []
+        for original_title, ancine_movies in ancine_dataset.items():
+            imdb_movies = imdb_dataset.get(original_title)
+            if not imdb_movies:
+                continue
+            for imdb_movie in imdb_movies:
+                found = False
+                for ancine_movie in ancine_movies:
+                    diff = imdb_movie['release_date'] - ancine_movie['release_date']
+                    if abs(diff.days) <= 365:
+                        rec = {
+                            'id': imdb_movie['id'],
+                            'original_title': ancine_movie['original_title'],
+                            'ptbr_title': ancine_movie['ptbr_title'],
+                            'scored_titles': self.get_scored_titles([ancine_movie['ptbr_title'],
+                                                                     ancine_movie['original_title']]),
+                            'release_date': ancine_movie['release_date'],
+                            'genres': imdb_movie['genres'],
+                            'cast': imdb_movie['cast'],
+                            'rating': imdb_movie['rating'],
+                            'votes': imdb_movie['votes'],
+                            'is_duplicated': ancine_movie['is_duplicated'],
+                        }
+                        movies.append(rec)
+                        found = True
+                if found:
+                    break
+
+        movies.sort(key=lambda x: x['release_date'], reverse=True)
+
+        print_('Gravando movies.json...')
+        movies_filename = os.path.join(self.dataset_dir, 'movies.json')
+        with open(movies_filename, 'w') as f:
+            for movie in movies:
+                movie['release_date'] = movie['release_date'].strftime('%Y-%m-%d')
                 movie = json.dumps(movie)
                 f.write('%s\n' % movie)
-        print_('Importante 1: Foi gerado o arquivo "%s". Ele deve ser enviado ao HDFS e contém os dados dos filmes.' % (filename))
-        # Gera um arquivo com os nomes os títulos ordenados pelo tamanho do título e pontuação.
+
+        print_('Gerando títulos ponderados de filmes...')
         movie_titles = []
-        for id_, movie in movies.items():
+        for movie in movies:
             for score, title in movie['scored_titles']:
-                movie_titles.append((len(title), score, title, id_))
+                movie_titles.append((len(title), score, title, movie['id']))
         movie_titles.sort(reverse=True)
 
-        filename = 'moviestitles.py'
-        with open(filename, 'w') as f:
+        print_('Gravando moviestitles.py...')
+        # Gera um arquivo com os nomes os títulos ordenados pelo tamanho do título e pontuação.
+        moviestitles_filename = os.path.join(self.mapreduce_dir, 'moviestitles.py')
+        with open(moviestitles_filename, 'w') as f:
             f.write('MOVIES_TITLES = (\n')
             for len_title, score, title, id_ in movie_titles:
                 rec = {'score': score, 'title': title, 'title_length': len(title), 'movie_id': id_}
                 f.write('    %s,\n' % repr(rec))
             f.write(')\n')
-        print_('Importante 2: Foi gerado o arquivo "%s". O conteúdo dele deve ser utilizado no script de MapReduce.' % (filename))
+
+        print_('Importante 1: Foi gerado o arquivo "%s". Ele deve ser enviado ao HDFS em "hdfs:///user/cloudera/watching/movies".' % (movies_filename))
+        print_('Importante 2: Foi gerado o arquivo "%s". Ele deve ser utilizado no script de mapper do MapReduce.' % (moviestitles_filename))

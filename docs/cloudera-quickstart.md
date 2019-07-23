@@ -1,6 +1,8 @@
 # Instalação e execução do Cloudera Quickstart 5.13
 
-Baixe a VM de quickstart na versão 5.13 da Cloudera. Escolha a opção **Docker Image**. Veja o documento de instalação do Docker.
+> Veja o documento de [docker.md](docker.md) para instruções de instalação.
+
+Baixe a VM de quickstart na versão 5.13 da Cloudera. Escolha a opção *Docker Image*.
 
 - https://www.cloudera.com/downloads/quickstart_vms/5-13.html
 

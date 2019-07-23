@@ -1,6 +1,6 @@
 # Instalação do Docker no Ubuntu 18.04/19.04
 
-Instalando as dependencias.
+Instalando as dependências.
 
 ```shell
 $ sudo apt-get update -y
@@ -21,7 +21,7 @@ $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ub
 $ sudo apt-get update -y
 ```
 
-Agora é possível instalar o Docker.
+Agora é possível instalar o Docker e habilitar a execução no boot.
 
 ```shell
 $ sudo apt-get install -y docker-ce docker-ce-cli containerd.io
@@ -35,7 +35,7 @@ $ sudo groupadd docker
 $ sudo usermod -aG docker $USER
 ```
 
-Precisa reiniciar o X no desktop ou fazer um reboot na VM para funcionar a aplicação do grupo.
+É necessário reiniciar o ambiente gráfico (Desktop) ou fazer um reboot na VM para funcionar a aplicação do grupo.
 
 ```shell
 reboot

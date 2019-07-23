@@ -8,6 +8,9 @@ from watching.etl.posts import PostsETL
 
 
 def main():
+    if input('Esta operação irá sobrescrever "posts.json" atual. Deseja continuar? (s/n) ') != 's':
+        print('operação cancelada')
+        exit(1)
     with PostsETL() as etl:
         etl.start()
 
