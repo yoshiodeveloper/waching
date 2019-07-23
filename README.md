@@ -12,13 +12,13 @@ Este dataset pode ser importado em uma ferramenta de BI para análise das inform
 
 Sequência de documentações a serem seguidas para a execução do sistema:
 
-- [Configuração no Linux](environment.md)
-- [Instalação do MongoDB](mongodb.md)
-- [Execução do crawler](crawler.md)
-- [Instalação o Docker](docker.md)
-- [Importar imagem Docker do Cloudera Quickstart](cloudera-quickstart.md)
-- [Criação dos datasets e tabelas no Hive](datasets-and-hive.md)
-- [Execução do MapReduce e geração do dataset final](mapreduce.md)
+- [Configuração no Linux](docs/environment.md)
+- [Instalação do MongoDB](docs/mongodb.md)
+- [Execução do crawler](docs/crawler.md)
+- [Instalação o Docker](docs/docker.md)
+- [Importar imagem Docker do Cloudera Quickstart](docs/cloudera-quickstart.md)
+- [Criação dos datasets e tabelas no Hive](docs/datasets-and-hive.md)
+- [Execução do MapReduce e geração do dataset final](docs/mapreduce.md)
 
 
 Qualquer dúvida entre em contato: yoshiodeveloper@gmail.com
