@@ -13,7 +13,7 @@ Este dataset pode ser importado em uma ferramenta de BI para análise das inform
 Sequência de documentações a serem seguidas para a execução do sistema:
 
 - [Configuração no Linux](environment.md)
-- [Instação do MongoDB](mongodb.md)
+- [Instalação do MongoDB](mongodb.md)
 - [Execução do crawler](crawler.md)
 - [Instalação o Docker](docker.md)
 - [Importar imagem Docker do Cloudera Quickstart](cloudera-quickstart.md)
