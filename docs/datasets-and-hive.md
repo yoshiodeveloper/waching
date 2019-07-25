@@ -36,6 +36,18 @@ $ docker container exec -it cloudera sudo -u cloudera hdfs dfs -mkdir -p /user/c
 $ docker container exec -it cloudera sudo -u cloudera hdfs dfs -copyFromLocal /tmp/host/posts.json /user/cloudera/watching/posts/
 ```
 
+Crie a tabela no Hive para o dataset.
+
+```sql
+CREATE EXTERNAL TABLE IF NOT EXISTS `watching`.`posts`(
+    `published_at` TIMESTAMP,
+    `full_text` STRING
+)
+ROW FORMAT SERDE 'org.apache.hive.hcatalog.data.JsonSerDe'
+STORED AS TEXTFILE
+LOCATION '/user/cloudera/watching/posts/';
+```
+
 ## Dataset imdb-movies.tsv
 
 > O dataset "imdb-movies.tsv" já foi gerado em encontra-se no diretório "watching/datasets". Não é necessário gerá-lo novamente.
