@@ -232,6 +232,7 @@ class MoviesETL(object):
         # Gera um arquivo com os nomes os títulos ordenados pelo tamanho do título e pontuação.
         moviestitles_filename = os.path.join(self.mapreduce_dir, 'moviestitles.py')
         with open(moviestitles_filename, 'w') as f:
+            f.write('# -*- encoding: utf-8 -*-\n\n')
             f.write('MOVIES_TITLES = (\n')
             for len_title, score, title, id_ in movie_titles:
                 rec = {'score': score, 'title': title, 'title_length': len(title), 'movie_id': id_}
