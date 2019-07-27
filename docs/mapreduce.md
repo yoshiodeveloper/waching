@@ -18,8 +18,8 @@ Execute o job de MapReduce.
 $ docker container exec -it cloudera \
   sudo -u cloudera hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
   -files "/tmp/host/mapreduce" \
-  -mapper "python3 /tmp/host/mapreduce/mapper_movies.py" \
-  -reducer "python3 /tmp/host/mapreduce/reducer_movies.py" \
+  -mapper "python3 mapreduce/mapper_movies.py" \
+  -reducer "python3 mapreduce/reducer_movies.py" \
   -input "/user/cloudera/watching/posts/" \
   -output "/user/cloudera/watching/movies_posts_mentions_out/" 
 ```

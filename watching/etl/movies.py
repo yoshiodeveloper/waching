@@ -5,6 +5,7 @@ import json
 import re
 import os
 
+from copy import deepcopy
 from datetime import datetime
 from unidecode import unidecode
 
@@ -29,6 +30,7 @@ class MoviesETL(object):
             'id': None,
             'original_title': None,
             'ptbr_title': None,
+            'other_names': [],
             'scored_titles': [],
             'release_date': None,
             'genres': [],
@@ -112,12 +114,18 @@ class MoviesETL(object):
             reader = csv.reader(f, delimiter=';', quotechar='"')
             reader.__next__()  # Ignora a primeira linha pois é o cabeçalho.
             for line in reader:
-                id_, original_title, ptbr_title, year_production, director, release_date = line[0], line[1], line[2], line[3], line[4], line[5]
-                rec = self.record_template.copy()
+                id_, original_title, ptbr_title, other_names, year_production, director, release_date = line[0], line[1], line[2], line[3], line[4], line[5], line[6]
+                rec = deepcopy(self.record_template)
                 rec['original_title'] = self.normalize_title(original_title)
                 rec['ptbr_title'] = self.normalize_title(ptbr_title)
                 if rec['ptbr_title'] == 'a ser definido':
                     continue
+                if other_names:
+                    other_names = other_names.strip()
+                    for n in other_names.split(';'):
+                        n = self.normalize_title(n)
+                        if n:
+                            rec['other_names'].append(n)
                 rec['release_date'] = datetime.strptime(release_date, '%Y-%m-%d')
                 movie_list = dataset.setdefault(rec['original_title'], [])
                 movie_list.append(rec)
@@ -139,7 +147,7 @@ class MoviesETL(object):
         with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter='\t', quotechar='"')
             for line in reader:
-                rec = self.record_template.copy()
+                rec = deepcopy(self.record_template)
                 id_, title, start_year, end_year, genres, cast, rating, votes = line[0], line[1], line[2], line[3], \
                                                                                 line[4], line[5], line[6], line[7]
                 rec['original_title'] = self.normalize_title(title)
@@ -193,12 +201,14 @@ class MoviesETL(object):
                 for ancine_movie in ancine_movies:
                     diff = imdb_movie['release_date'] - ancine_movie['release_date']
                     if abs(diff.days) <= 365:
+                        titles = [ancine_movie['ptbr_title'], ancine_movie['original_title']]
+                        titles.extend(ancine_movie['other_names'])
                         rec = {
                             'id': imdb_movie['id'],
                             'original_title': ancine_movie['original_title'],
                             'ptbr_title': ancine_movie['ptbr_title'],
-                            'scored_titles': self.get_scored_titles([ancine_movie['ptbr_title'],
-                                                                     ancine_movie['original_title']]),
+                            'other_names': ancine_movie['other_names'],
+                            'scored_titles': self.get_scored_titles(titles),
                             'release_date': ancine_movie['release_date'],
                             'genres': imdb_movie['genres'],
                             'cast': imdb_movie['cast'],

@@ -26,10 +26,9 @@ class PostsETL(object):
         db = get_db()
         print_('Consultando posts no MongoDB...')
         filename = os.path.join(self.dataset_dir, 'posts.json')
-        #start_at = datetime(2019, 7, 8, 0, 0, 0, 0)
-        # end_at = datetime(2019, 7, 14, 23, 59, 59, 999999)
-        #find_filter = {'published_at': {'$gte': start_at, '$lte': end_at}}
-        find_filter = {}
+        start_at = datetime(2019, 7, 8, 0, 0, 0, 0)
+        end_at = datetime(2019, 7, 26, 23, 59, 59, 999999)
+        find_filter = {'published_at': {'$gte': start_at, '$lte': end_at}}
         posts = db.posts.find(find_filter, {'published_at': 1, 'tweet.full_text': 1})
         total = posts.count()
         i = 0
