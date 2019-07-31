@@ -78,8 +78,10 @@ class MoviesETL(object):
         for t in titles[:]:
             if '-' in t:
                 # spider-man -> spiderman, spider man
-                titles.append(t.replace('-', ''))
-                titles.append(t.replace('-', ' '))
+                for t_ in (t.replace('-', ''), t.replace(' - ', ' ')):
+                    if t_ not in titles:
+                        titles.append(t_)
+
         scored_titles = []
         for title in titles:
             a = title
@@ -87,7 +89,6 @@ class MoviesETL(object):
             c = self.remove_stopwords(b)
             d = self.remove_stopwords(a)
             rate = 10 / 4
-            included = set()
             for w, text in ((4, a), (3, b), (2, c), (1, d)):
                 parts = text.split(' ')
                 total = len(parts)
@@ -95,12 +96,16 @@ class MoviesETL(object):
                     t = ' '.join(parts[0:idx+1])
                     if len(t) < 2:
                         continue
-                    if t in included:
-                        continue
-                    included.add(t)
                     perc = ((idx + 1) / total) * w * rate
                     scored_titles.append((perc, t))
-        return scored_titles
+        scored_titles.sort(reverse=True)
+        new_scored_titles = []
+        included = set()
+        for perc, t in scored_titles:
+            if t not in included:
+                new_scored_titles.append((perc, t))
+                included.add(t)
+        return new_scored_titles
 
     def get_ancine_dataset(self):
         """ Retorna o dataset da Ancine. Um dicionário é retornado onde a chave o título do filme (original) e o valor
